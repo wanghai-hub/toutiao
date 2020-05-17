@@ -14,6 +14,9 @@ const routes = [
       // {path: '/edit/:id', component:() => import('../views/edit.vue')},
       {path: '/img', component:() => import('../views/img.vue')},
       {path: '/publish', component:() => import('../views/publish.vue')},
+      {path: '/comment',component:() => import('../views/comment.vue')},
+      {path: '/fans',component:() => import('../views/fans.vue')},
+      {path: '/edit',component:() => import('../views/edit.vue')}
       
     ]
   },

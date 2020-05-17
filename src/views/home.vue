@@ -72,6 +72,7 @@
 
 <script>
 import auth from '../api/auth'
+import eventbus from '../util/eventbus'
 export default {
     name: 'home',
     data() {
@@ -85,6 +86,12 @@ export default {
       const user = auth.getuser()
       this.username = user.name
       this.photo = user.photo
+      eventbus.$on('toHome',function(data) {
+        this.username = data
+      })
+      eventbus.$on('updatePhoto',function(data) {
+        this.userphoto = data
+      })
     },
     methods: {
       toggle() {

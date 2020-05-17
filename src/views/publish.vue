@@ -2,7 +2,7 @@
   <div class='publish'>
     <el-card>
       <div slot="header">
-        <my-bread>发布文章</my-bread>
+        <my-bread>{{$route.query.id?'修改文章':'发布文章'}}</my-bread>
       </div>
       <!-- 表单 -->
       <el-form label-width="120px">
@@ -27,7 +27,7 @@
                  <el-radio :label="0">无图</el-radio>
                  <el-radio :label="-1">自动</el-radio>
              </el-radio-group>
-             <!-- 使用封面图组件 -->
+             <!-- 使用封装好的封面图组件 -->
                 <div style="margin-top:10px" v-if="articleForm.cover.type===1">
                     <my-cover v-model="articleForm.cover.images[0]"></my-cover>
                 </div>
@@ -68,17 +68,10 @@ export default {
     },
     data() {
         return {
-            articleForm: {
-                title: '',
-                content: '',
-                cover: {
-                    type:1,
-                    images: []
-                },
-                channel_id: null,
-                editorOption: {
-                  modules: {
-                    placeholder:'',
+          // 富文本配置对象
+          editorOption: {
+                  placeholder:'',
+                  modules: {                   
                     toolbar: [
                         ['bold', 'italic', 'underline', 'strike'],
                         [{ 'header': 1 }, { 'header': 2 }],
@@ -86,12 +79,67 @@ export default {
                         [{ 'font': [] }],
                         [{ 'align': [] }],
                     ]
-                   }
-                }
-            }
+                  }
+                },
+          articleForm: {
+                title: null,
+                content: null,
+                cover: {
+                    type:1,
+                    images: []
+                },
+                channel_id: null,
+                
+          }
         }
     },
+    created() {
+      if(this.$route.query.id) {
+        this.getarticle()
+      }
+    },
+    watch: {
+      '$route.query.id': function() {
+        // 有id 说明是要修改
+        if(this.$route.query.id) {
+          this.getarticle()
+        }else {
+          //没有id 说明要发布
+          this.articleForm = {
+                title: null,
+                content: null,
+                cover: {
+                    type:1,
+                    images: []
+                },
+                channel_id: null,
+                
+          }
+        }
+      }
+    },
     methods: {
+      async getarticle() {
+        const {data: {data} } = await this.$http.get(`articels/${this.$route.query.id}`)
+        this.articleForm = data
+      },
+      async addArticle(query) {
+        try{
+          await this.$http.post(`articles?draft=${query}`,this.articleForm)
+          this.$router.push('/articles')
+        }catch(e){
+          console.log('操作失败');         
+        }
+      },
+      // 修改文章
+      updateArticle() {
+        try{
+          await this.$http.put(`articles/${this.$route.query.id}?draft=false`,
+                this.articleForm)
+        }catch(e) {
+          console.log('更新失败')          
+        }
+      },
 
     }
 }

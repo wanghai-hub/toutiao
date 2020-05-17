@@ -2,6 +2,7 @@
   <div class='MyCover'>
        <div class="btn_img" @click="openDialog()">
          <!-- 保证父组件传入图片地址没有的话，显示默认图 -->
+         <!-- 父组件是无图就显示自己的图片 -->
          <img :src="value || coverImageUrl" />
       </div>
 
@@ -10,6 +11,7 @@
        <!-- tab组件 -->
          <el-tabs v-model="activeName" type="card">
             <el-tab-pane label="素材库" name="img">
+                <!-- 切换按钮 -->
                 <el-radio-group @change="changeCollect" v-model="reqParams.collect" size="small">
                     <el-radio-button :label="false">全部</el-radio-button>
                     <el-radio-button :label="true">收藏</el-radio-button>
@@ -64,27 +66,28 @@ import defaultImg from '@/assets/default.png'
 import auth from '../api/auth'
 export default {
     name: 'MyCover',
+    props: ['value'],
     data() {
         return {
-            uploadImageUrl: null,
+            uploadImageUrl: null, //上传预览图片
             images: [],
             total: 0,
-            coverImageUrl: defaultImg, // 默认图片的地址
-            dialogVisible: false,
+            coverImageUrl: defaultImg, // 默认预览图片的地址
+            dialogVisible: false, //弹出对话框显示
             activeName: 'img',
             reqParams: {
                 collect: false,
                 page: 1,
                 per_page: 8
-            },
-             // 选中的图片地址
-            selectedImageUrl: null,
+            },           
+            selectedImageUrl: null, // 选中的图片地址
             headers: {
                 Authorization: `Berare ${auth.getuser().token}`
             }
         }
     },
     methods: {
+        //上传成功
         uploadSuccess(res) {
              this.uploadImageUrl = res.data.url
         },
@@ -95,7 +98,7 @@ export default {
         },
         // 打开对话框
         openDialog() {
-            // 重置数据
+            // 再次打开对话框,重置数据
             this.selectedImageUrl = null
             this.uploadImageUrl = null
             this.activeName = 'image'
@@ -103,6 +106,7 @@ export default {
             this.dialogVisible= true
             this.getimages()
         },
+        // 获取素材列表
         async getimages() {
             const {data: {data}} = await this.$http.get('user/images',{params: this.reqParams} )
             this.images = data.results
@@ -117,19 +121,23 @@ export default {
             this.reqParams.page = newpage
             this.getimages()
         },
+        //点击确认上传/收藏按钮
         confirmImage() {
             if (this.activeName === 'image') {
                 if (!this.selectedImageUrl) {
-                    return this.$message.warning('请先选中一张图片')
+                    return this.$message.warning('收藏请先选中一张图片')
                     }
-                this.coverImageUrl = this.selectedImageUrl
-                
+                // this.coverImageUrl =  this.selectedImageUrl
+                //点击确认之后，将新的图片交给父组件显示预览
+                this.$emit('input',this.selectedImageUrl)
+            
             }
             if (this.activeName === 'upload') {
                  if (!this.uploadImageUrl) {
                     return this.$message.warning('请先上传一张图片')
                     }
-                this.coverImageUrl = this.uploadImageUrl
+                // this.coverImageUrl = this.uploadImageUrl
+                this.$emit('input',this.uploadImageUrl)
             }
 
              this.dialogVisible = false
